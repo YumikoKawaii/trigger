@@ -1,0 +1,14 @@
+{
+  "name": "trigger",
+  "module": "index.ts",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "type": "module",
+  "dependencies": {
+    "@danogo-js/sdk": "0.2.1"
+  }
+}
