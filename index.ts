@@ -6,7 +6,7 @@ import { OPERATOR_SEED } from "./src/config/config.ts"
 const lucidInstance = await getLucidInstance(OPERATOR_SEED)
 const operatorAddr = await lucidInstance.wallet().address()
 const platformConfig = await lucidInstance.utxosByOutRef([{
-    txHash: "458b8df21ea76dfd779a51039fae3fda851a627c96ac03679d0e20706d3db6bc",
+    txHash: "8d46e404ea5733ed03a844519e9259611e59d1d10250435a61ee0317f2193138",
     outputIndex: 0,
 }])
 const operator = new Operator(lucidInstance, platformConfig[0], operatorAddr)

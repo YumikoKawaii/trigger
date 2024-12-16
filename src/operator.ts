@@ -138,6 +138,7 @@ export class Operator {
 
         const utxos = await this.prepareUtxos()
         console.log(utxos)
+        console.log(this.platformCfg)
         const sessionTokenId = hashUTxOs(utxos)
         const policyId = validatorToScriptHash(this.mintingPolicy)
         const sessionVerificationNft = toUnit(policyId, sessionTokenId)
@@ -147,6 +148,9 @@ export class Operator {
         const ticketTokenIds = [0, 1, 2].map((value, _) => {
             return getTicketTokenId(sessionTokenId, value)
         })
+
+        const currentTs = Date.now()
+
         const rdmr = Data.to(new Constr(0, [0n, 0n]))
         const sessionDatum: SessionDatum = {
             oraclePolicy: [
@@ -159,8 +163,8 @@ export class Operator {
             maxTicketCountPerOption: 100n,
             ticketPrice: 10_000_000n,
             sessionTime: {
-                lowerbound: 1734280234n,
-                upperbound: 1734366634n
+                lowerbound: BigInt(currentTs + 60 * 60 * 1000),
+                upperbound: BigInt(currentTs + 7 * 60 * 60 * 1000),
             },
             resultParams: null,
             ticketWin: null,
@@ -170,36 +174,28 @@ export class Operator {
         const txn = await this.lucidInstance.newTx()
             .collectFrom(utxos)
             .readFrom([this.platformCfg])
-            // .mintAssets({
-            //     [sessionVerificationNft]: 1n,
-            //     [sessionOrganizerNft]: 1n,
-            //     [policyId + ticketTokenIds[0]]: 100n,
-            //     [policyId + ticketTokenIds[1]]: 100n,
-            //     [policyId + ticketTokenIds[2]]: 100n,
-            // }, rdmr)
-            // .attach.MintingPolicy(this.mintingPolicy)
+            .mintAssets({
+                [sessionVerificationNft]: 1n,
+                [sessionOrganizerNft]: 1n,
+                [policyId + ticketTokenIds[0]]: 100n,
+                [policyId + ticketTokenIds[1]]: 100n,
+                [policyId + ticketTokenIds[2]]: 100n,
+            }, rdmr)
+            .attach.MintingPolicy(this.mintingPolicy)
             .pay.ToAddressWithData(
-                this.operatorAddress,
+                scriptAddr,
                 {
                     kind: "inline",
                     value: this.buildSessionDatum(sessionDatum, SessionDatumSchema)
                 },
                 {
-                    lovelace: 2_000_000n,
-                    // [sessionVerificationNft]: 1n,
-                    // [sessionOrganizerNft]: 1n,
-                    // [policyId + ticketTokenIds[0]]: 100n,
-                    // [policyId + ticketTokenIds[1]]: 100n,
-                    // [policyId + ticketTokenIds[2]]: 100n,
+                    lovelace: 3_000_000n,
+                    [sessionVerificationNft]: 1n,
+                    [policyId + ticketTokenIds[0]]: 100n,
+                    [policyId + ticketTokenIds[1]]: 100n,
+                    [policyId + ticketTokenIds[2]]: 100n,
                 }
             )
-            // .pay.ToAddress(
-            //     this.operatorAddress,
-            //     {
-            //         lovelace: 2_000_000n,
-            //         [sessionOrganizerNft]: 1n,
-            //     }
-            // )
             .addSignerKey(pkh)
             .complete({
                 coinSelection: true,
@@ -212,7 +208,7 @@ export class Operator {
     }
 
     readValidators() {
-        let { getValidator, definitions } = getValidatorInstance(`../../plutus_silent.json`)
+        let { getValidator, definitions } = getValidatorInstance(`../../plutus.json`)
         return {
             LiqwidSpendValidator: (tk_cfg: TupleAsset) => getValidator("liqwid_sc.execute.spend", [tk_cfg]),
             LiqwidMintPolicy: (tk_cfg: TupleAsset) => getValidator("liqwid_sc.execute.mint", [tk_cfg]),
