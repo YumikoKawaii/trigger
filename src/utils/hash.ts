@@ -54,27 +54,3 @@ function intToDigitsHex(num: number) {
         .reverse()
         .reduce((acc, num) => acc + (num + 48).toString(16), '');
 }
-
-export function stringToHex(str: string) {
-    return Buffer.from(str,'utf-8').toString('hex')
-}
-
-export const bigIntReviver = (key: any, value: any) => {
-    if (typeof value !== 'string') {
-        return value;
-    }
-
-    const match = /^(-?\d+)n?$/.exec(value);
-
-    if (!match) {
-        return value;
-    }
-
-    const numericValue = match[1];
-
-    if (BigInt(numericValue) > Number.MAX_SAFE_INTEGER || BigInt(numericValue) < Number.MIN_SAFE_INTEGER) {
-        return BigInt(numericValue);
-    }
-
-    return Number(numericValue);
-};

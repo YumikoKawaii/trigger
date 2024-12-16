@@ -196,6 +196,8 @@ export class Operator {
                     [policyId + ticketTokenIds[2]]: 100n,
                 }
             )
+            .validFrom(currentTs - 30 * 1000)
+            .validTo(currentTs + 360 * 1000)
             .addSignerKey(pkh)
             .complete({
                 coinSelection: true,
